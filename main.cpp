@@ -211,7 +211,6 @@ public:
         }
         return A;
     }
-    
     long double fact(int N)
     {
         if(N < 0)
@@ -225,7 +224,7 @@ public:
     Matrix Mat_Exp( const Matrix& other, int n){
         Matrix Exp(n,n);
         for(int i = 0; i<n; i++){
-            for(int j = 0; i<n; j++){
+            for(int j = 0; j<n; j++){
                 if(i == j){
                     Exp.Setij(i, j, 1);
                 } else {
@@ -234,10 +233,10 @@ public:
             }
         }
         
-//        for(int i = 1; i < 5; i++){
-//            float a = 1/fact(i);
-//            Exp = Exp + Pow_Matrix(other, i)*a;
-//        }
+        for(int i = 1; i < 45; i++){
+            float a = 1/fact(i);
+            Exp = Exp + Pow_Matrix(other, i)*a;
+        }
         return Exp;
     }
 
@@ -257,7 +256,7 @@ int main()
 //    h.FWDGauss().Print();
     
     Matrix<float> h(3,3);
-        for (int i=0;i<=3;i++){
+        for (int i=0;i<3;i++){
             for (int j=0;j<3;j++){
                 h.Setij(i, j, (i)*(j)+1);
                 }
@@ -268,3 +267,4 @@ int main()
     //a.Print();
     h.Mat_Exp(h,3).Print();
 }
+
