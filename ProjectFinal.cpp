@@ -143,6 +143,49 @@ public:
 		}
 		return *this;
 	}
+	
+	Matrix BWDGauss()
+	{
+		//backward elim
+		for (int i=width-1;i>=1;i--){
+			for (int j=i-1;j>=0;j--){
+				if (this->data[i][i] == 0){continue;}
+				T t = this->data[j][i]/this->data[i][i];
+				for (int k=0;k<length;k++){
+					this->data[j][k] -= t*this->data[i][k];
+					}
+				}
+			}
+		
+		return *this;
+	}
+	
+	Matrix NormGauss()
+	{
+		for (int i=0;i<width;i++)
+		{
+			T t;
+			for (int k=0;k<length;k++)
+			{
+				if (data[i][k] != 0)
+				{
+					t = data[i][k];
+					break;
+				}
+			}
+			for (int j=0;j<length;j++)
+			{
+				data[i][j]*= 1/t;
+			}
+		}
+		return *this;
+	}
+	
+	
+	Matrix Gauss()
+	{
+		return this->FWDGauss().BWDGauss().NormGauss();
+	}
 
 	void Print()
 	{
@@ -365,10 +408,13 @@ int main() {
 	matl.Setij(1, 1, std::complex<double>(2, 0));
 	matl.Setij(2, 2, std::complex<double>(3, 0));
 	matl.Print();
-
 	std::vector<Matrix<std::complex<double>,3,1>> a = matl.Eigenvectors3(1.);
 	for (int i = 0; i < a.size(); i++)
 	{
 		a[i].Print();
 	}
+	//test gauss
+	Matrix<double, 4, 6> b({{1,1,1,1,1,1},{1,2,0,1,0,0},{0,0,1,6,0,1},{0,0,0,1,0,0}});
+	b.Print();
+	b.Gauss().Print();
 }
