@@ -125,7 +125,7 @@ public:
 		{
 			for (int k = i + 1; k < width; k++)
 			{
-				if (data[i][i] == 0 and data[k][i] != 0)
+				if (data[i][i] == 0. and data[k][i] != 0.)
 					this->SwapRow(i, k);
 			}
 		}
@@ -134,7 +134,7 @@ public:
 		for (int i = 0; i < width - 1; i++)
 		{
 			for (int j = i + 1; j < width; j++) {
-				if (this->data[i][i] == 0) { return *this; }
+				if (this->data[i][i] == 0.) { return *this; }
 				T t = this->data[j][i] / this->data[i][i];
 				for (int k = 0; k < length; k++) {
 					this->data[j][k] -= t * this->data[i][k];
@@ -167,27 +167,27 @@ public:
 			return false;
 		}
 	}
-	double det()
+	std::complex < double > det()
 	{
-		std::vector<double>& A = this;
-		return A[0] * A[4] * A[8] - A[0] * A[5] * A[7] - A[1] * A[3] * A[8] + A[1] * A[5] * A[6] - A[2] * A[4] * A[6] + A[2] * A[3] * A[7];
+		
+		return this->Getij(0, 0) * this->Getij(1, 1) * this->Getij(2, 2) - this->Getij(0, 0) * this->Getij(1, 2) * this->Getij(2, 1) - this->Getij(0, 1) * this->Getij(1, 0) * this->Getij(2, 2) + this->Getij(0, 1) * this->Getij(1, 2) * this->Getij(2, 1) - this->Getij(0, 2) * this->Getij(1, 1) * this->Getij(2, 0) + this->Getij(0, 2) * this->Getij(1, 0) * this->Getij(2, 1);
 	}
-	std::vector<double> EigenPol3(std::vector<double>& A)
+	std::vector < std::complex<double> > EigenPol3()
 	{
-		std::vector<double> L;
+		std::vector<std::complex<double>> L;
 		L.push_back(-1);
-		L.push_back(A[0] + A[4] + A[8]);
-		L.push_back(-(A[0] * A[4] - A[1] * A[3] + A[4] * A[8] - A[5] * A[7] + A[0] * A[8] - A[2] * A[6]));
-		L.push_back(det(A));
+		L.push_back(this->Getij(0, 0) + this->Getij(1, 1) + this->Getij(2, 2));
+		L.push_back(-(this->Getij(0, 0) * this->Getij(1, 1) - this->Getij(0, 1) * this->Getij(1, 0) + this->Getij(1, 1) * this->Getij(2, 2) - this->Getij(1, 2) * this->Getij(2, 1) + this->Getij(0, 0) * this->Getij(2, 2) - this->Getij(0, 2) * this->Getij(2, 0)));
+		L.push_back(this->det());
 		return L;
 	}
-	std::vector<std::complex<double>>& Eigenvalues3(std::vector<double>& A)
+	std::vector<std::complex<double>>& Eigenvalues3()
 	{
-		std::vector<double> L = EigenPol3(A);
+		std::vector<std::complex<double>> L = this->EigenPol3();
 		std::vector<std::complex<double>> EV;
-		std::complex<double> p = L[2] / L[0] - (L[1] * L[1]) / (L[0] * L[0] * 3);
-		std::complex<double> q = (2 * pow(L[1], 3)) / (27 * pow(L[0], 3)) - (L[1] * L[2]) / (3 * pow(L[0], 2)) + L[3] / L[0];
-		std::complex<double> Q = pow(p / 3., 3) + pow(q / 2., 2);
+		std::complex<double> p = L[2] / L[0] - (L[1] * L[1]) / (L[0] * L[0] * 3.);
+		std::complex<double> q = (2. * pow(L[1], 3.)) / (27. * pow(L[0], 3.)) - (L[1] * L[2]) / (3. * pow(L[0], 2.)) + L[3] / L[0];
+		std::complex<double> Q = pow(p / 3., 3) + pow(q / 2., 2.);
 		std::complex<double> alpha0 = pow(-q / 2. + pow(Q, 0.5), 1. / 3);
 		std::complex<double> beta0 = pow(-q / 2. - pow(Q, 0.5), 1. / 3);
 		std::complex<double> beta = beta0;
@@ -198,51 +198,52 @@ public:
 				beta = beta * std::complex < double >(-0.5, sin(PI / 3));
 			}
 		}
-		EV.push_back(alpha0 + beta - L[1] / (3 * L[0]));
+		EV.push_back(alpha0 + beta - L[1] / (3. * L[0]));
 
-		EV.push_back(-L[1] / (3 * L[0]) - (alpha0 + beta) / 2.0 - (pow(3, 0.5) * std::complex < double >(0, 1) * (alpha0 - beta)) / 2.0);
-		EV.push_back(-L[1] / (3 * L[0]) - (alpha0 + beta) / 2.0 + (pow(3, 0.5) * std::complex < double >(0, 1) * (alpha0 - beta)) / 2.0);
+		EV.push_back(-L[1] / (3. * L[0]) - (alpha0 + beta) / 2.0 - (pow(3, 0.5) * std::complex < double >(0, 1) * (alpha0 - beta)) / 2.0);
+		EV.push_back(-L[1] / (3. * L[0]) - (alpha0 + beta) / 2.0 + (pow(3, 0.5) * std::complex < double >(0, 1) * (alpha0 - beta)) / 2.0);
 		return EV;
 	}
-	double det2(std::vector<double>& A)
+	std::complex<double> det2()
 	{
-		return A[0] * A[3] - A[1] * A[2];
+		return this->Getij(0,0) * this->Getij(1, 1) - this->Getij(0, 1) * this->Getij(1, 0);
 	}
-	std::vector<double> EigenPol2(std::vector<double>& A)
+	std::vector < std::complex < double > > EigenPol2()
 	{
-		std::vector<double> L;
-		L.push_back(1);
-		L.push_back(-A[0] - A[3]);
-		L.push_back(det2(A));
+		std::vector<std::complex<double>> L;
+		L.push_back(1.);
+		L.push_back(-this->Getij(0,0) - this->Getij(1, 1));
+		L.push_back(this->det2());
 		return L;
 	}
-	std::vector<std::complex<double>> Eigenvalues2(std::vector<double>& A)
+	std::vector<std::complex<double>> Eigenvalues2()
 	{
-		std::vector<double> L = EigenPol2(A);
+		std::vector < std::complex < double >> L = this->EigenPol2();
 		std::vector<std::complex<double>> EV;
-		std::complex<double> D = L[1] * L[1] - 4 * L[0] * L[2];
-		EV.push_back((-L[1] + pow(D, 0.5)) / (2 * L[0]));
-		EV.push_back((-L[1] - pow(D, 0.5)) / (2 * L[0]));
+		std::complex<double> D = L[1] * L[1] - 4. * L[0] * L[2];
+		EV.push_back((-L[1] + pow(D, 0.5)) / (2. * L[0]));
+		EV.push_back((-L[1] - pow(D, 0.5)) / (2. * L[0]));
 		return EV;
 	}
-	std::vector<Matrix<std::complex<double>, 3, 1>> Eigenvectors3(Matrix<std::complex<double>, 3, 3> mat, std::complex < double > evalue)
+	std::vector<Matrix<std::complex<double>, 3, 1>> Eigenvectors3(std::complex < double > evalue)
 	{
-		Matrix<std::complex<double>, 3, 3> matl = mat;
-		/*matl[0] = matl[0] - evalue;
-		matl[4] = matl[4] - evalue;
-		matl[8] = matl[8] - evalue;
-		matl = FWDGauss(matl);*/
+		Matrix<std::complex<double>, 3, 3> matl (this->data);
+		matl.Setij(0,0, matl.Getij(0, 0) - evalue);
+		matl.Setij(1, 1, matl.Getij(1, 1) - evalue);
+		matl.Setij(2, 2, matl.Getij(2, 2) - evalue);
+		matl = matl.FWDGauss();
+		matl.Print();
 		int rg = 3;
 		std::vector<Matrix<std::complex<double>, 3, 1>> ans;
 		if (CheckComplZero(matl.Getij(0, 0)))
 		{
 			rg--;
 		}
-		if (CheckComplZero(matl.Getij(0, 0)))
+		if (CheckComplZero(matl.Getij(1, 1)))
 		{
 			rg--;
 		}
-		if (CheckComplZero(matl.Getij(0, 0)))
+		if (CheckComplZero(matl.Getij(2, 2)))
 		{
 			rg--;
 		}
@@ -280,7 +281,6 @@ public:
 				h1.Setij(2, 0, std::complex<double>(1, 0));
 				ans.push_back(h1);
 			}
-			1 == 1;
 		}
 		if (rg == 1)
 		{
@@ -336,11 +336,11 @@ public:
 			h2.Setij(1, 0, std::complex<double>(1, 0));
 			h2.Setij(2, 0, std::complex<double>(0, 0));
 			ans.push_back(h2);
-			Matrix<std::complex<double>, 3, 1> h2;
+			Matrix<std::complex<double>, 3, 1> h3;
 			h2.Setij(0, 0, std::complex<double>(0, 0));
 			h2.Setij(1, 0, std::complex<double>(0, 0));
 			h2.Setij(2, 0, std::complex<double>(1, 0));
-			ans.push_back(h2);
+			ans.push_back(h3);
 		}
 		return ans;
 	}
@@ -360,11 +360,15 @@ int main() {
 	matl[8] = matl[8] - evalue;
 	matl = FWDGauss(matl);*/
 	matl.Setij(0, 0, std::complex<double>(1, 0));
-	matl.Setij(0, 1, std::complex<double>(1, 0));
-	matl.Setij(0, 2, std::complex<double>(0, 0));
+	matl.Setij(0, 1, std::complex<double>(0, 0));
+	matl.Setij(1, 0, std::complex<double>(0, 0));
 	matl.Setij(1, 1, std::complex<double>(2, 0));
-	matl.Setij(1, 2, std::complex<double>(4, 0));
-	matl.Setij(2, 2, std::complex<double>(0, 0));
+	matl.Setij(2, 2, std::complex<double>(3, 0));
 	matl.Print();
-	std::cout  << matl.det();
+
+	std::vector<Matrix<std::complex<double>,3,1>> a = matl.Eigenvectors3(1.);
+	for (int i = 0; i < a.size(); i++)
+	{
+		a[i].Print();
+	}
 }
