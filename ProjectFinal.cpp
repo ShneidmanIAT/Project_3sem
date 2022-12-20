@@ -236,6 +236,7 @@ public:
 		}
 		return *this;
 	}
+	//дллинные строки счет матрицы
 	std::complex < double > det()
 	{
 		
@@ -563,7 +564,6 @@ class DiffEq
 	Matrix<T, num, num> mat;
 public:
 	DiffEq(Matrix<T, num, num> mat) : mat(mat) {};
-	template<int num = 3>
 	void Solve()
 	{
 		std::vector<std::complex<double>> eval1 = this->mat.Eigenvalues3();
