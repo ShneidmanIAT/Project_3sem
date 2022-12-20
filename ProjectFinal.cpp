@@ -19,6 +19,7 @@ bool CheckComplZero(std::complex < double > value)
 		return false;
 	}
 }
+//unsignes
 template <typename T, int width, int length>
 class Matrix final
 {
@@ -33,6 +34,7 @@ class Matrix final
 public:
 
 	Matrix() {
+		//vector initialization
 		std::vector<T> str;
 		for (int i = 0; i < width; i++)
 		{
@@ -44,7 +46,7 @@ public:
 			str.clear();
 		}
 	}
-
+	//const &
 	Matrix(std::vector< std::vector<T> > data) : data(data) {}
 
 	Matrix(const Matrix& other)
@@ -173,7 +175,7 @@ public:
 
 		return *this;
 	}
-
+	//rename
 	Matrix NormGauss()
 	{
 		for (int i = 0; i < width; i++)
@@ -200,7 +202,7 @@ public:
 	{
 		return this->FWDGauss().BWDGauss().NormGauss();
 	}
-
+	//<<
 	void Print()
 	{
 		for (int i = 0; i < width; i++)
@@ -645,14 +647,14 @@ int main() {
 	matl[8] = matl[8] - evalue;
 	matl = FWDGauss(matl);*/
 	matl.Setij(0, 0, std::complex<double>(2, 0));
-	matl.Setij(0, 1, std::complex<double>(2, 0));
-	matl.Setij(0, 2, std::complex<double>(3, 0));
+	matl.Setij(0, 1, std::complex<double>(0, 0));
+	matl.Setij(0, 2, std::complex<double>(0, 0));
 	matl.Setij(1, 0, std::complex<double>(0, 0));
-	matl.Setij(1, 1, std::complex<double>(1, 0));
-	matl.Setij(1, 2, std::complex<double>(5, 0));
-	matl.Setij(2, 0, std::complex<double>(6, 0));
+	matl.Setij(1, 1, std::complex<double>(3, 0));
+	matl.Setij(1, 2, std::complex<double>(0, 0));
+	matl.Setij(2, 0, std::complex<double>(0, 0));
 	matl.Setij(2, 1, std::complex<double>(0, 0));
-	matl.Setij(2, 2, std::complex<double>(1, 0));
+	matl.Setij(2, 2, std::complex<double>(4, 0));
 	matl.Print();
 	DiffEq < std::complex < double >, 3> d(matl);
 	d.Solve();
