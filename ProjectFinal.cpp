@@ -1,8 +1,9 @@
 ﻿#include <iostream>
 #include <complex>
 #include <vector>
-#include <cmath>
+#include <math.h>
 #include <algorithm>
+#include <iostream>
 const double PI = 3.141592653589793;
 const double Err = 0.0001;
 void porvu() {
@@ -35,32 +36,19 @@ public:
 
 	Matrix() {
 		//vector initialization
-		std::vector<T> str;
-		for (int i = 0; i < width; i++)
-		{
-			for (int j = 0; j < length; j++)
-			{
-				str.push_back(T(0));
-			}
-			data.push_back(str);
-			str.clear();
-		}
+		std::vector<T> str(length, T(0));
+		std::vector<std::vector<T>> str2(width, str);
+		data.resize(width);
+		std::copy(str2.begin(), str2.end(), data.begin());
+		int a = 10;
 	}
 	//const &
 	Matrix(std::vector< std::vector<T> > data) : data(data) {}
 
 	Matrix(const Matrix& other)
 	{
-		for (int i = 0; i < width; i++)
-		{
-			std::vector<T> data_str;
-			for (int j = 0; j < length; j++)
-			{
-				data_str.push_back(other.data[i][j]);
-			}
-			data.push_back(data_str);
-			data_str.clear();
-		}
+		data.resize(width);
+		std::copy(other.data.begin(), other.data.end(), data.begin());
 	}
 
 	T Getij(int i, int j) const
@@ -135,7 +123,7 @@ public:
 		return prod;
 	}
 
-	Matrix FWDGauss()
+	Matrix GaussWalk()
 	{
 		//pivot
 		for (int i = 0; i < width; i++)
@@ -158,10 +146,7 @@ public:
 				}
 			}
 		}
-		return *this;
-	}
-	Matrix BWDGauss()
-	{
+	
 		//backward elim
 		for (int i = width - 1; i >= 1; i--) {
 			for (int j = i - 1; j >= 0; j--) {
@@ -176,22 +161,28 @@ public:
 		return *this;
 	}
 	//rename
-	Matrix NormGauss()
+	Matrix Normalize()
 	{
+		bool flag = false;
 		for (int i = 0; i < width; i++)
 		{
-			T t;
+			T t  = T(0);
+			flag = false;
 			for (int k = 0; k < length; k++)
 			{
-				if (!CheckColmplZero(data[i][k]))
+				if (!CheckComplZero(data[i][k]))
 				{
 					t = data[i][k];
+					flag = true;
 					break;
 				}
 			}
-			for (int j = 0; j < length; j++)
+			if (flag)
 			{
-				data[i][j] *= 1 / t;
+				for (int j = 0; j < length; j++)
+				{
+					data[i][j] *= 1. / t;
+				}
 			}
 		}
 		return *this;
@@ -200,21 +191,22 @@ public:
 
 	Matrix Gauss()
 	{
-		return this->FWDGauss().BWDGauss().NormGauss();
+		return this->GaussWalk().Normalize();
 	}
 	//<<
-	void Print()
-	{
+	friend std::ostream& operator << (std::ostream& os, const Matrix < T, width, length > &  mat) {
 		for (int i = 0; i < width; i++)
 		{
-			std::cout << "|";
+			os << "|";
 			for (int j = 0; j < length; j++) {
-				std::cout << data[i][j] << " ";
+				os << mat.Getij(i, j) << " ";
 			}
-			std::cout << "|\n";
+			os << "|\n";
 		}
-		std::cout << "\n";
-	}
+		os << "\n";
+		return os;
+	};
+
 	Matrix Diag3()
 	{
 		if (width == 3)
@@ -237,10 +229,18 @@ public:
 		return *this;
 	}
 	//дллинные строки счет матрицы
-	std::complex < double > det()
-	{
-		
-		return this->Getij(0, 0) * this->Getij(1, 1) * this->Getij(2, 2) - this->Getij(0, 0) * this->Getij(1, 2) * this->Getij(2, 1) - this->Getij(0, 1) * this->Getij(1, 0) * this->Getij(2, 2) + this->Getij(0, 1) * this->Getij(1, 2) * this->Getij(2, 1) - this->Getij(0, 2) * this->Getij(1, 1) * this->Getij(2, 0) + this->Getij(0, 2) * this->Getij(1, 0) * this->Getij(2, 1);
+	
+
+	T det_2() {
+		return data[0][0] * data[1][1] - data[1][0] * data[0][1];
+	}
+
+	T det_3() {
+		T sum = T(0);
+		for (int i = 0; i < 3; i++) {
+			sum = sum + pow(-1, i) * data[0][i] * (Submatrix(1, 1 + i).det_2());
+		}
+		return sum;
 	}
 	std::vector < std::complex<double> > EigenPol3()
 	{
@@ -248,7 +248,7 @@ public:
 		L.push_back(-1);
 		L.push_back(this->Getij(0, 0) + this->Getij(1, 1) + this->Getij(2, 2));
 		L.push_back(-(this->Getij(0, 0) * this->Getij(1, 1) - this->Getij(0, 1) * this->Getij(1, 0) + this->Getij(1, 1) * this->Getij(2, 2) - this->Getij(1, 2) * this->Getij(2, 1) + this->Getij(0, 0) * this->Getij(2, 2) - this->Getij(0, 2) * this->Getij(2, 0)));
-		L.push_back(this->det());
+		L.push_back(this->det_3());
 		return L;
 	}
 	std::vector<std::complex<double>> Eigenvalues3()
@@ -276,13 +276,13 @@ public:
 	}
 	std::complex<double> det2()
 	{
-		return this->Getij(0,0) * this->Getij(1, 1) - this->Getij(0, 1) * this->Getij(1, 0);
+		return this->Getij(0, 0) * this->Getij(1, 1) - this->Getij(0, 1) * this->Getij(1, 0);
 	}
 	std::vector < std::complex < double > > EigenPol2()
 	{
 		std::vector<std::complex<double>> L;
 		L.push_back(1.);
-		L.push_back(-this->Getij(0,0) - this->Getij(1, 1));
+		L.push_back(-this->Getij(0, 0) - this->Getij(1, 1));
 		L.push_back(this->det2());
 		return L;
 	}
@@ -297,27 +297,22 @@ public:
 	}
 	std::vector<Matrix<std::complex<double>, 3, 1>> Eigenvectors3(std::complex < double > evalue)
 	{
-		Matrix<std::complex<double>, 3, 3> matl (this->data);
-		matl.Setij(0,0, matl.Getij(0, 0) - evalue);
+		Matrix<std::complex<double>, 3, 3> matl(this->data);
+		matl.Setij(0, 0, matl.Getij(0, 0) - evalue);
 		matl.Setij(1, 1, matl.Getij(1, 1) - evalue);
 		matl.Setij(2, 2, matl.Getij(2, 2) - evalue);
-		matl = matl.FWDGauss();
-		matl = matl.BWDGauss();
+		matl = matl.Gauss();
 		matl = matl.Diag3();
-		int rg = 3;
 		std::vector<Matrix<std::complex<double>, 3, 1>> ans;
-		if (CheckComplZero(matl.Getij(0, 0)) && CheckComplZero(matl.Getij(0, 1)) && CheckComplZero(matl.Getij(0, 2)))
+		int rg = 0;
+		for (int i = 0; i < 3; i++)
 		{
-			rg--;
+			if (!CheckComplZero(matl.Getij(i, i)))
+			{
+				rg++;
+			}
 		}
-		if (CheckComplZero(matl.Getij(1, 0)) && CheckComplZero(matl.Getij(1, 1 )) && CheckComplZero(matl.Getij(1, 2)))
-		{
-			rg--;
-		}
-		if (CheckComplZero(matl.Getij(2, 0)) && CheckComplZero(matl.Getij(2, 1)) && CheckComplZero(matl.Getij(2, 2)))
-		{
-			rg--;
-		}
+		
 		if (rg == 3)
 		{
 
@@ -423,138 +418,128 @@ public:
 		}
 		return ans;
 	}
-	Matrix Pow_Matrix(const Matrix& other, const int n){
-         Matrix A = other;
-         Matrix B = other;
-         for(int i = 1; i<=n-1; i++){
-             A = A*B;
-         }
-         return A;
-     }
-     long double fact(int N)
-     {
-         if(N < 0)
-             return 0;
-         if (N == 0)
-             return 1;
-         else
-             return N * fact(N - 1);
-     }
-     
-     template<int n>
-     Matrix Mat_Exp( const Matrix& other){
-         Matrix<T, n , n > Exp;
-         for(int i = 0; i<n; i++){
-             for(int j = 0; j<n; j++){
-                 if(i == j){
-                     Exp.Setij(i, j, 1);
-                 } else {
-                     Exp.Setij(i, j, 0);
-                 }
-             }
-         }
-         
-         for(int i = 1; i < 45; i++){
-             float a = 1/fact(i);
-             Exp = Exp + Pow_Matrix(other, i)*a;
-         }
-         return Exp;
-     }
-    
-    template<int n>
-    Matrix Mat_Exp_t(const Matrix& other, T t) {
-        Matrix<T, n , n > Exp;
-        for(int i = 0; i<n; i++){
-            for(int j = 0; j<n; j++){
-                if(i == j){
-                    Exp.Setij(i, j, 1);
-                } else {
-                    Exp.Setij(i, j, 0);
-                }
-            }
-        }
-        
-        for(int i = 1; i < 45; i++){
+	Matrix Pow_Matrix(const Matrix& other, const int n) {
+		Matrix A = other;
+		Matrix B = other;
+		for (int i = 1; i <= n - 1; i++) {
+			A = A * B;
+		}
+		return A;
+	}
+	long double fact(int N)
+	{
+		if (N < 0)
+			return 0;
+		if (N == 0)
+			return 1;
+		else
+			return N * fact(N - 1);
+	}
 
-            float a = pow(t,i)/fact(i);
-            Exp = Exp + Pow_Matrix(other, i)*a;
-        }
-        return Exp;
-    }
-    
-    template<int n>
-    std::vector<T> Lin_eq(const Matrix& A, const std::vector<T> b) {
-        Matrix Delta_1 = A;
-        Matrix Delta_2 = A;
-        Matrix Delta_3 = A;
-        Matrix Delta = A;
-        for(int i = 0; i<3; i++) {
-            Delta_1.Setij(i, 0, b[i]);
-        }
-        for(int i = 0; i<3; i++) {
-            Delta_2.Setij(i, 1, b[i]);
-        }
-        for(int i = 0; i<3; i++) {
-            Delta_3.Setij(i, 2, b[i]);
-        }
-        T delta_1 = Delta_1.det_3();
-        T delta_2 = Delta_2.det_3();
-        T delta_3 = Delta_3.det_3();
-        T delta = Delta.det_3();
-        T x_1 = delta_1/delta;
-        T x_2 = delta_2/delta;
-        T x_3 = delta_3/delta;
-        std::vector<T> x;
-        x.push_back(x_1);
+	template<int n>
+	Matrix Mat_Exp(const Matrix& other) {
+		Matrix<T, n, n > Exp;
+		for (int i = 0; i < n; i++) {
+			for (int j = 0; j < n; j++) {
+				if (i == j) {
+					Exp.Setij(i, j, 1);
+				}
+				else {
+					Exp.Setij(i, j, 0);
+				}
+			}
+		}
 
-        x.push_back(x_2);
-        x.push_back(x_3);
+		for (int i = 1; i < 45; i++) {
+			float a = 1 / fact(i);
+			Exp = Exp + Pow_Matrix(other, i) * a;
+		}
+		return Exp;
+	}
 
-        return x;
+	template<int n>
+	Matrix Mat_Exp_t(const Matrix& other, T t) {
+		Matrix<T, n, n > Exp;
+		for (int i = 0; i < n; i++) {
+			for (int j = 0; j < n; j++) {
+				if (i == j) {
+					Exp.Setij(i, j, 1);
+				}
+				else {
+					Exp.Setij(i, j, 0);
+				}
+			}
+		}
 
-    }
-    
- 
-    
-    
-    template <int n>
-    Matrix<T,3,1> Approx_sol( Matrix& h, const std::vector<T> x_1, double t){
-        Matrix <T,3,3>Exp =h.Mat_Exp_t<3>(h,t);
-        Matrix<T,3,1> a({{x_1[0]},{x_1[1]},{x_1[2]}});
-        Matrix<T,3,1> x = Exp*a;
+		for (int i = 1; i < 45; i++) {
 
-        return x ;
-    }
+			float a = pow(t, i) / fact(i);
+			Exp = Exp + Pow_Matrix(other, i) * a;
+		}
+		return Exp;
+	}
 
-    
-    
-    
-    //    template<width-1, length-1>
-        Matrix<T,width-1, length-1> Submatrix(size_t line, size_t column)
-            {
-                std::vector< std::vector<T> > data_minor = data;
-                auto begin = data_minor.cbegin();
-                data_minor.erase(begin + line - 1);
-                for (size_t i = 0; i<length-1; i++)
-                {
-                    auto begin1 = data_minor[i].cbegin();
-                    data_minor[i].erase(begin1 + column - 1);
-                }
-                return Matrix<T, width-1, length-1>(data_minor);
-            }
-    
-    T det_2(){
-        return data[0][0]*data[1][1] - data[1][0]*data[0][1];
-    }
-    
-    T det_3(){
-        T sum = T(0);
-        for(int i = 0; i < 3; i++){
-            sum = sum + pow(-1,i)*data[0][i]*(Submatrix(1, 1+i).det_2());
-        }
-        return sum;
-    }
-    
+	template<int n>
+	std::vector<T> Lin_eq(const Matrix& A, const std::vector<T> b) {
+		Matrix Delta_1 = A;
+		Matrix Delta_2 = A;
+		Matrix Delta_3 = A;
+		Matrix Delta = A;
+		for (int i = 0; i < 3; i++) {
+			Delta_1.Setij(i, 0, b[i]);
+		}
+		for (int i = 0; i < 3; i++) {
+			Delta_2.Setij(i, 1, b[i]);
+		}
+		for (int i = 0; i < 3; i++) {
+			Delta_3.Setij(i, 2, b[i]);
+		}
+		T delta_1 = Delta_1.det_3();
+		T delta_2 = Delta_2.det_3();
+		T delta_3 = Delta_3.det_3();
+		T delta = Delta.det_3();
+		T x_1 = delta_1 / delta;
+		T x_2 = delta_2 / delta;
+		T x_3 = delta_3 / delta;
+		std::vector<T> x;
+		x.push_back(x_1);
+
+		x.push_back(x_2);
+		x.push_back(x_3);
+
+		return x;
+
+	}
+
+
+
+
+	template <int n>
+	Matrix<T, 3, 1> Approx_sol(Matrix& h, const std::vector<T> x_1, double t) {
+		Matrix <T, 3, 3>Exp = h.Mat_Exp_t<3>(h, t);
+		Matrix<T, 3, 1> a({ {x_1[0]},{x_1[1]},{x_1[2]} });
+		Matrix<T, 3, 1> x = Exp * a;
+
+		return x;
+	}
+
+
+
+
+	//    template<width-1, length-1>
+	Matrix<T, width - 1, length - 1> Submatrix(size_t line, size_t column)
+	{
+		std::vector< std::vector<T> > data_minor = data;
+		auto begin = data_minor.cbegin();
+		data_minor.erase(begin + line - 1);
+		for (size_t i = 0; i < length - 1; i++)
+		{
+			auto begin1 = data_minor[i].cbegin();
+			data_minor[i].erase(begin1 + column - 1);
+		}
+		return Matrix<T, width - 1, length - 1>(data_minor);
+	}
+
 
 	~Matrix() {}
 };
@@ -602,16 +587,16 @@ public:
 						std::cout << "+";
 					}
 					std::cout << "C" << k << "* exp(" << eval[i] << "t) * " << std::endl;
-					mat.Eigenvectors3(eval[i])[j].Print();
-					
+					std::cout << mat.Eigenvectors3(eval[i])[j];
+
 				}
 			}
-				
+
 		}
 		else {
 			this->SolveNum();
 		}
-		
+
 	}
 
 	void SolveNum()
@@ -628,9 +613,8 @@ public:
 		h.Setij(2, 1, this->mat.Getij(2, 1).real());
 		h.Setij(2, 2, this->mat.Getij(2, 2).real());
 		std::vector<long double> b({ 1,0,0 });
-		h.Print();
-		h.Approx_sol<3>(h, b, 2).Print();
-		h.Mat_Exp_t<3>(h, 2).Print();
+		std::cout << h.Approx_sol<3>(h, b, 2);
+		std::cout << h.Mat_Exp_t<3>(h, 2);
 		porvu();
 	}
 };
@@ -646,16 +630,15 @@ int main() {
 	matl[4] = matl[4] - evalue;
 	matl[8] = matl[8] - evalue;
 	matl = FWDGauss(matl);*/
-	matl.Setij(0, 0, std::complex<double>(2, 0));
+	matl.Setij(0, 0, std::complex<double>(0, 0));
 	matl.Setij(0, 1, std::complex<double>(0, 0));
 	matl.Setij(0, 2, std::complex<double>(0, 0));
 	matl.Setij(1, 0, std::complex<double>(0, 0));
-	matl.Setij(1, 1, std::complex<double>(3, 0));
-	matl.Setij(1, 2, std::complex<double>(0, 0));
+	matl.Setij(1, 1, std::complex<double>(1, 0));
+	matl.Setij(1, 2, std::complex<double>(1, 0));
 	matl.Setij(2, 0, std::complex<double>(0, 0));
 	matl.Setij(2, 1, std::complex<double>(0, 0));
-	matl.Setij(2, 2, std::complex<double>(4, 0));
-	matl.Print();
+	matl.Setij(2, 2, std::complex<double>(1, 0));
 	DiffEq < std::complex < double >, 3> d(matl);
 	d.Solve();
 }
